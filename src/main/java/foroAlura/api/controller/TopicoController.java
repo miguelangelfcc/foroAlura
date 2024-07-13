@@ -1,13 +1,13 @@
 package foroAlura.api.controller;
 
-import foroAlura.api.topico.DatosListadoTopico;
-import foroAlura.api.topico.DatosRegistroTopico;
-import foroAlura.api.topico.Topico;
-import foroAlura.api.topico.TopicoRepository;
+import foroAlura.api.topico.*;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,11 +28,36 @@ public class TopicoController {
     }
 
     @GetMapping
-    public Page<DatosListadoTopico> listadoTopicos(Pageable paginacion){
+    public Page<DatosListadoTopico> listadoTopicos(@PageableDefault(sort = "autor") Pageable paginacion){
         return topicoRepository.findAll(paginacion).map(DatosListadoTopico::new);
-
-
 
     }
 
+    @GetMapping ("/{id}")
+    public ResponseEntity<DatosListadoTopico> listaUnicoTopico(@PathVariable Long id) {
+        Topico topico = topicoRepository.getReferenceById(id);
+        var datosTopico = new DatosListadoTopico(topico);
+        return ResponseEntity.ok(datosTopico);
+    }
+
+    @PutMapping
+    @Transactional
+  //  public void actualizarTopico(@RequestBody @Valid DatosActualizarTopico datosActualizarTopico) {
+   // Topico topico = topicoRepository.getReferenceById(datosActualizarTopico.id());
+ //   topico.actualizarDatos(datosActualizarTopico);
+  //  }
+
+    public ResponseEntity actualizarTopico(@RequestBody @Valid DatosActualizarTopico datosActualizarTopico) {
+        Topico topico = topicoRepository.getReferenceById(datosActualizarTopico.id());
+        topico.actualizarDatos(datosActualizarTopico);
+        return ResponseEntity.ok(new DatosListadoTopico(topico));
+    }
+
+    @DeleteMapping ("/{id}")
+    @Transactional
+    public void eliminarTopico(@PathVariable Long id){
+        Topico topico = topicoRepository.getReferenceById(id);
+        topicoRepository.delete(topico);
+
+    }
 }
